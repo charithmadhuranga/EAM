@@ -1,0 +1,16 @@
+[package]
+name = "eam-esphome-api"
+version = "0.1.0"
+edition = "2021"
+description = "ESPHome Native API client for ESPHome Automation Manager"
+
+[dependencies]
+eam-domain = { path = "../eam-domain" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+tracing = "0.1"
+bytes = "1.5"
+prost = "0.12"

@@ -1,0 +1,14 @@
+[package]
+name = "eam-dashboard"
+version = "0.1.0"
+edition = "2021"
+description = "Dashboard service for ESPHome Automation Manager"
+
+[dependencies]
+eam-domain = { path = "../eam-domain" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+tracing = "0.1"

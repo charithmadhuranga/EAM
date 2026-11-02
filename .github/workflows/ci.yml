@@ -1,0 +1,243 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # Rust checks
+  rust-check:
+    name: Rust ${{ matrix.rust }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        rust: [stable, beta]
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        exclude:
+          - rust: beta
+            os: windows-latest
+          - rust: beta
+            os: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: rustfmt, clippy
+
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Build
+        run: cargo build --workspace
+
+      - name: Run tests
+        run: cargo test --workspace --all-features
+
+  # Frontend checks
+  frontend-check:
+    name: Frontend Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
+
+      - name: Cache pnpm
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.local/share/pnpm/store
+            node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check TypeScript
+        run: pnpm run check
+
+      - name: Run linter
+        run: pnpm run lint
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Run tests
+        run: pnpm run test
+
+  # Security audit
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-audit
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+
+      - name: Run Rust audit
+        run: cargo audit
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run npm audit
+        run: pnpm audit
+        continue-on-error: true
+
+  # Build Tauri app (only on main/develop)
+  tauri-build:
+    name: Build Tauri App (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    needs: [rust-check, frontend-check]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - platform: linux
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - platform: macos
+            os: macos-latest
+            target: x86_64-apple-darwin
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-tauri-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
+
+      - name: Install dependencies (Linux)
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}-v__VERSION__
+          releaseName: 'EAM ${{ github.ref_name }} v__VERSION__'
+          releaseBody: 'See CHANGELOG.md for details.'
+          releaseDraft: true
+          prerelease: true
+          target: ${{ matrix.target }}
+
+  # Test coverage
+  coverage:
+    name: Test Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-coverage
+
+      - name: Install tarpaulin
+        run: cargo install cargo-tarpaulin
+
+      - name: Generate coverage
+        run: cargo tarpaulin --workspace --out Xml --output-dir coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage/cobertura.xml
+          fail_ci_if_error: false

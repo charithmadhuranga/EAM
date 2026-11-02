@@ -1,0 +1,174 @@
+# ESPHome Automation Manager - Docker Compose Configuration
+# Development environment with all necessary services
+
+version: '3.8'
+
+services:
+  # Main development container
+  dev:
+    build:
+      context: .
+      target: development
+    volumes:
+      # Workspace mount
+      - .:/workspace:cached
+      # Cargo registry cache
+      - cargo-registry:/usr/local/cargo/registry
+      - cargo-git:/usr/local/cargo/git
+      # pnpm store cache
+      - pnpm-store:/root/.local/share/pnpm/store
+      # Build artifacts
+      - target-dir:/workspace/target
+    working_dir: /workspace
+    command: sleep infinity
+    environment:
+      # Display for GUI apps (optional)
+      - DISPLAY=${DISPLAY:-}
+      # Rust backtrace for debugging
+      - RUST_BACKTRACE=1
+      - RUST_LOG=debug
+      # Node environment
+      - NODE_ENV=development
+      # Database path
+      - EAM_DATABASE_URL=sqlite:/workspace/data/eam.db
+    ports:
+      # Tauri dev server (if needed)
+      - "1420:1420"
+      # Vite dev server
+      - "5173:5173"
+    networks:
+      - eam-network
+    # Required for GUI apps
+    privileged: true
+
+  # Mock ESPHome device fixture for testing
+  fixture-device-1:
+    image: python:3.11-slim
+    container_name: eam-fixture-1
+    volumes:
+      - ./tools/fixture-server:/fixture:ro
+    working_dir: /fixture
+    command: python3 mock_device.py --port 6053 --name "test-device-1" --password ""
+    ports:
+      - "6053:6053"
+    environment:
+      - ESPHOME_API_PORT=6053
+      - ESPHOME_API_PASSWORD=""
+      - ESPHOME_DEVICE_NAME=test-device-1
+    networks:
+      - eam-network
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import socket; s=socket.socket(); s.connect(('localhost', 6053)); s.close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Second mock device for multi-device testing
+  fixture-device-2:
+    image: python:3.11-slim
+    container_name: eam-fixture-2
+    volumes:
+      - ./tools/fixture-server:/fixture:ro
+    working_dir: /fixture
+    command: python3 mock_device.py --port 6054 --name "test-device-2" --password ""
+    ports:
+      - "6054:6054"
+    environment:
+      - ESPHOME_API_PORT=6054
+      - ESPHOME_API_PASSWORD=""
+      - ESPHOME_DEVICE_NAME=test-device-2
+    networks:
+      - eam-network
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import socket; s=socket.socket(); s.connect(('localhost', 6054)); s.close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # SQLite database viewer (Adminer)
+  db-viewer:
+    image: adminer:latest
+    container_name: eam-db-viewer
+    ports:
+      - "8080:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=sqlite
+      - ADMINER_DESIGN=pepa-linha-dark
+    networks:
+      - eam-network
+    profiles:
+      - tools
+
+  # Redis for caching (optional, future use)
+  cache:
+    image: redis:7-alpine
+    container_name: eam-cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - eam-network
+    profiles:
+      - tools
+
+  # Prometheus for metrics (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: eam-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./tools/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - eam-network
+    profiles:
+      - monitoring
+
+  # Grafana for dashboards (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: eam-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./tools/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - eam-network
+    profiles:
+      - monitoring
+
+volumes:
+  cargo-registry:
+    name: eam-cargo-registry
+  cargo-git:
+    name: eam-cargo-git
+  pnpm-store:
+    name: eam-pnpm-store
+  target-dir:
+    name: eam-target
+  redis-data:
+    name: eam-redis-data
+  prometheus-data:
+    name: eam-prometheus-data
+  grafana-data:
+    name: eam-grafana-data
+
+networks:
+  eam-network:
+    name: eam-network
+    driver: bridge

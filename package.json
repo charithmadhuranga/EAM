@@ -1,0 +1,24 @@
+{
+  "name": "esphome-automation-manager",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first desktop application for managing ESPHome device fleets",
+  "packageManager": "pnpm@8.15.0",
+  "workspaces": [
+    "apps/desktop"
+  ],
+  "scripts": {
+    "dev": "pnpm --filter desktop dev",
+    "build": "pnpm --filter desktop build",
+    "tauri": "pnpm --filter desktop tauri",
+    "check": "pnpm --filter desktop check",
+    "test": "pnpm --filter desktop test"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.0",
+    "typescript": "^5.3.0"
+  }
+}

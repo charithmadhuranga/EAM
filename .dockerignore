@@ -1,0 +1,66 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Dependencies
+node_modules
+.pnpm-store
+target
+Cargo.lock
+pnpm-lock.yaml
+
+# Build outputs
+dist
+build
+*.log
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Data and logs
+data
+logs
+*.db
+*.db-shm
+*.db-wal
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Testing
+coverage
+.nyc_output
+test-results
+
+# Documentation
+docs/_site
+*.md
+!README.md
+
+# CI/CD
+.github
+.circleci
+.gitlab-ci.yml
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Temporary files
+tmp
+temp
+*.tmp
+*.temp

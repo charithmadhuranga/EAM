@@ -1,0 +1,203 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://esphome-automation-manager.org/schemas/dashboard/v1.json",
+  "title": "ESPHome Automation Manager Dashboard Definition",
+  "description": "Canonical schema for dashboard definitions. Defines widgets, layout, and configuration for customizable dashboards.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "layout",
+    "widgets"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Schema version for backward compatibility"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]{36}$",
+      "description": "UUID for the dashboard"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "User-facing dashboard name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description"
+    },
+    "layout": {
+      "type": "object",
+      "required": ["columns", "rowHeight", "gap"],
+      "properties": {
+        "columns": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 24,
+          "description": "Number of columns in the grid layout"
+        },
+        "rowHeight": {
+          "type": "integer",
+          "minimum": 20,
+          "maximum": 200,
+          "description": "Height of each row in pixels"
+        },
+        "gap": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20,
+          "description": "Gap between widgets in pixels"
+        },
+        "compact": {
+          "type": "boolean",
+          "description": "Whether to use compact layout"
+        }
+      }
+    },
+    "widgets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/widget"
+      },
+      "description": "List of widgets on the dashboard"
+    },
+    "variables": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "string" },
+          { "type": "number" },
+          { "type": "boolean" }
+        ]
+      },
+      "description": "Dashboard-level variables for widget configuration"
+    },
+    "timeRange": {
+      "type": "object",
+      "properties": {
+        "preset": {
+          "type": "string",
+          "enum": ["1h", "6h", "24h", "7d", "30d", "custom"],
+          "description": "Predefined time range"
+        },
+        "start": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp for custom range"
+        },
+        "end": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp for custom range"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "widget": {
+      "type": "object",
+      "required": ["id", "type", "config", "layout"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{36}$",
+          "description": "Unique ID for this widget instance"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "numeric_value",
+            "sensor_value",
+            "line_chart",
+            "multi_series_chart",
+            "gauge",
+            "progress_bar",
+            "binary_status",
+            "switch_control",
+            "light_control",
+            "number_control",
+            "select_control",
+            "button_action",
+            "fan_control",
+            "cover_control",
+            "device_health",
+            "event_timeline",
+            "automation_status",
+            "markdown"
+          ],
+          "description": "Type of widget"
+        },
+        "title": {
+          "type": "string",
+          "description": "Widget title (optional, can use entity name)"
+        },
+        "entityId": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{36}$",
+          "description": "Entity UUID that this widget displays/controls"
+        },
+        "config": {
+          "type": "object",
+          "description": "Widget-specific configuration"
+        },
+        "layout": {
+          "type": "object",
+          "required": ["x", "y", "w", "h"],
+          "properties": {
+            "x": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Column position (0-indexed)"
+            },
+            "y": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Row position (0-indexed)"
+            },
+            "w": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 24,
+              "description": "Width in columns"
+            },
+            "h": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "description": "Height in rows"
+            },
+            "minW": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Minimum width constraint"
+            },
+            "minH": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Minimum height constraint"
+            }
+          }
+        },
+        "refreshInterval": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Auto-refresh interval in seconds (0 = manual)"
+        },
+        "hidden": {
+          "type": "boolean",
+          "description": "Whether widget is hidden"
+        },
+        "tooltip": {
+          "type": "string",
+          "description": "Tooltip text"
+        }
+      }
+    }
+  }
+}

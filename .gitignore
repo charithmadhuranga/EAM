@@ -1,0 +1,197 @@
+# ESPHome Automation Manager - Git Ignore
+
+# ====================
+# Rust
+# ====================
+/target/
+**/*.rs.bk
+Cargo.lock
+**/Cargo.lock
+
+# ====================
+# Node.js / JavaScript
+# ====================
+node_modules/
+dist/
+build/
+.next/
+out/
+.nuxt/
+.cache/
+.vuepress/dist/
+.serverless/
+
+# pnpm
+.pnpm-debug.log
+.pnpm-store/
+
+# npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.yarn-integrity
+
+# ====================
+# Tauri
+# ====================
+/apps/desktop/src-tauri/target/
+/apps/desktop/src-tauri/Cargo.lock
+/apps/desktop/src-tauri/WixTools/
+/apps/desktop/src-tauri/tools/
+
+# ====================
+# IDEs and Editors
+# ====================
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ====================
+# Operating Systems
+# ====================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+
+# ====================
+# Build Artifacts
+# ====================
+/dist/
+/build/
+/release/
+*.exe
+*.dll
+*.so
+*.dylib
+*.app
+*.dmg
+*.deb
+*.rpm
+*.AppImage
+*.snap
+
+# ====================
+# Logs
+# ====================
+/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ====================
+# Environment Variables
+# ====================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.envrc
+
+# ====================
+# Database
+# ====================
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+/data/*.db
+/data/*.db-journal
+/data/*.db-wal
+
+# ====================
+# Secrets and Credentials
+# ====================
+*.pem
+*.key
+*.crt
+secrets.yaml
+.secrets/
+credentials.json
+*.credential
+
+# ====================
+# Testing
+# ====================
+/coverage/
+/.nyc_output/
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# ====================
+# Documentation
+# ====================
+/site/
+/docs/_build/
+
+# ====================
+# Temporary Files
+# ====================
+/tmp/
+/temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# ====================
+# Docker
+# ====================
+.docker/
+
+# ====================
+# Misc
+# ====================
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+.npm
+.yarn

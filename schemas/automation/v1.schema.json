@@ -1,0 +1,333 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://esphome-automation-manager.org/schemas/automation/v1.json",
+  "title": "ESPHome Automation Manager Automation Definition",
+  "description": "Canonical schema for automation definitions. Defines triggers, conditions, and actions for cross-device automation.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "enabled",
+    "executionPolicy",
+    "triggers",
+    "actions"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Schema version for backward compatibility"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]{36}$",
+      "description": "UUID for the automation"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "User-facing automation name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description"
+    },
+    "enabled": {
+      "type": "boolean",
+      "description": "Whether the automation is active"
+    },
+    "executionPolicy": {
+      "type": "object",
+      "required": ["overlap", "cooldownMs", "maxRunDurationMs"],
+      "properties": {
+        "overlap": {
+          "type": "string",
+          "enum": ["ignore", "queue", "replace"],
+          "description": "Policy for overlapping automation runs"
+        },
+        "cooldownMs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Minimum time between runs"
+        },
+        "maxRunDurationMs": {
+          "type": "integer",
+          "minimum": 1000,
+          "description": "Maximum execution time"
+        },
+        "retry": {
+          "type": "object",
+          "properties": {
+            "maxAttempts": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10,
+              "description": "Maximum retry attempts"
+            },
+            "backoffMs": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Delay between retries"
+            }
+          }
+        }
+      }
+    },
+    "triggers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/trigger"
+      },
+      "description": "List of triggers that start the automation"
+    },
+    "condition": {
+      "oneOf": [
+        { "$ref": "#/$defs/condition" },
+        { "type": "null" }
+      ],
+      "description": "Optional condition that must be true for actions to run"
+    },
+    "actions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/action"
+      },
+      "description": "List of actions to execute when automation runs"
+    },
+    "variables": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "string" },
+          { "type": "number" },
+          { "type": "boolean" },
+          { "type": "array", "items": { "type": "string" } },
+          { "type": "object" }
+        ]
+      },
+      "description": "Automation variables for use in conditions and actions"
+    }
+  },
+  "$defs": {
+    "trigger": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{36}$",
+          "description": "Unique ID for this trigger instance"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "entity_state_changed",
+            "numeric_threshold",
+            "device_online",
+            "device_offline",
+            "schedule",
+            "manual",
+            "automation_run_complete"
+          ],
+          "description": "Type of trigger"
+        },
+        "entityId": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{36}$",
+          "description": "Entity UUID for entity-based triggers"
+        },
+        "operator": {
+          "type": "string",
+          "enum": ["equals", "not_equals", "greater_than", "less_than", "greater_than_or_equal", "less_than_or_equal", "within_range"],
+          "description": "Comparison operator for numeric triggers"
+        },
+        "value": {
+          "oneOf": [
+            { "type": "number" },
+            { "type": "string" },
+            { "type": "boolean" }
+          ],
+          "description": "Threshold or comparison value"
+        },
+        "forMs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Duration the condition must hold before triggering"
+        },
+        "dayOfWeek": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6,
+          "description": "Day of week (0=Sunday) for schedule triggers"
+        },
+        "hour": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 23,
+          "description": "Hour for schedule triggers (24-hour)"
+        },
+        "minute": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 59,
+          "description": "Minute for schedule triggers"
+        },
+        "timeZone": {
+          "type": "string",
+          "description": "Time zone for schedule triggers (IANA format)"
+        }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "entity_state",
+            "numeric_comparison",
+            "device_available",
+            "time_day",
+            "group",
+            "variable"
+          ],
+          "description": "Type of condition"
+        },
+        "entityId": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{36}$",
+          "description": "Entity UUID for entity-based conditions"
+        },
+        "operator": {
+          "type": "string",
+          "enum": ["equals", "not_equals", "greater_than", "less_than", "within_range"],
+          "description": "Comparison operator"
+        },
+        "value": {
+          "oneOf": [
+            { "type": "number" },
+            { "type": "string" },
+            { "type": "boolean" }
+          ],
+          "description": "Comparison value"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          },
+          "description": "Sub-conditions for group conditions"
+        },
+        "operator": {
+          "type": "string",
+          "enum": ["and", "or"],
+          "description": "Logical operator for group conditions"
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{36}$",
+          "description": "Unique ID for this action instance"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "set_entity_state",
+            "set_number",
+            "set_light",
+            "set_fan",
+            "set_climate",
+            "press_button",
+            "toggle_switch",
+            "select_option",
+            "delay",
+            "run_automation",
+            "log_message",
+            "sequence",
+            "parallel",
+            "if_then",
+            "repeat",
+            "wait_for_event"
+          ],
+          "description": "Type of action"
+        },
+        "entityId": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{36}$",
+          "description": "Entity UUID for entity-based actions"
+        },
+        "value": {
+          "oneOf": [
+            { "type": "number" },
+            { "type": "string" },
+            { "type": "boolean" },
+            { "type": "object" }
+          ],
+          "description": "Target value for the action"
+        },
+        "timeoutMs": {
+          "type": "integer",
+          "minimum": 1000,
+          "description": "Action timeout in milliseconds"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/action"
+          },
+          "description": "Sub-actions for flow control actions"
+        },
+        "filter": {
+          "$ref": "#/$defs/event_filter",
+          "description": "Filter for event-based actions"
+        },
+        "message": {
+          "type": "string",
+          "description": "Log message for log_message action"
+        },
+        "automationId": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{36}$",
+          "description": "Automation UUID to run for run_automation action"
+        },
+        "maxIterations": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum iterations for repeat action"
+        },
+        "intervalMs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Interval between iterations for repeat action"
+        }
+      }
+    },
+    "event_filter": {
+      "type": "object",
+      "properties": {
+        "eventType": {
+          "type": "string",
+          "description": "Event type to wait for"
+        },
+        "entityId": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{36}$",
+          "description": "Entity UUID for event filter"
+        },
+        "condition": {
+          "type": "object",
+          "description": "Condition that must be met for the event"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+[package]
+name = "eam-domain"
+version = "0.1.0"
+edition = "2021"
+description = "Pure domain types for ESPHome Automation Manager. No external dependencies."
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }

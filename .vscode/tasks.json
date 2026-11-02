@@ -1,0 +1,131 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "cargo build",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$rustc"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "cargo test",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["test", "--workspace"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": ["$rustc"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "cargo clippy",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["clippy", "--workspace", "--", "-D", "warnings"],
+      "problemMatcher": ["$rustc"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "cargo fmt",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["fmt", "--all"],
+      "problemMatcher": []
+    },
+    {
+      "label": "pnpm: dev",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["run", "dev"],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "VITE",
+          "endsPattern": "ready in"
+        }
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "pnpm: dev-frontend",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["--filter", "desktop", "dev"],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "VITE",
+          "endsPattern": "Local:"
+        }
+      }
+    },
+    {
+      "label": "pnpm: build",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["run", "build"],
+      "problemMatcher": []
+    },
+    {
+      "label": "pnpm: test",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["run", "test"],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run all checks",
+      "dependsOn": ["cargo fmt", "cargo clippy", "cargo test", "pnpm: test"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Start development environment",
+      "dependsOn": ["pnpm: dev"],
+      "dependsOrder": "parallel",
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}

@@ -1,0 +1,426 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://esphome-automation-manager.org/schemas/gateway/v1.json",
+  "title": "ESPHome Automation Manager Gateway Configuration",
+  "description": "Canonical schema for Gateway Server configuration. Defines gateway identity, network settings, FRP client configuration, and API server settings.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "gateway",
+    "localNetwork",
+    "apiServer"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Schema version for backward compatibility"
+    },
+    "gateway": {
+      "$ref": "#/$defs/gatewayConfig",
+      "description": "Gateway identity and basic settings"
+    },
+    "localNetwork": {
+      "$ref": "#/$defs/localNetworkConfig",
+      "description": "Local network and device discovery settings"
+    },
+    "frp": {
+      "$ref": "#/$defs/frpConfig",
+      "description": "FRP client configuration for remote access"
+    },
+    "apiServer": {
+      "$ref": "#/$defs/apiServerConfig",
+      "description": "API server configuration"
+    },
+    "security": {
+      "$ref": "#/$defs/securityConfig",
+      "description": "Security and audit settings"
+    },
+    "database": {
+      "$ref": "#/$defs/databaseConfig",
+      "description": "Database configuration"
+    },
+    "logging": {
+      "$ref": "#/$defs/loggingConfig",
+      "description": "Logging configuration"
+    }
+  },
+  "$defs": {
+    "gatewayConfig": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{36}$",
+          "description": "Unique gateway identifier (UUID)"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Gateway display name"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Optional gateway description"
+        },
+        "location": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Physical location (e.g., 'Home', 'Office Building A')"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tags for organization"
+        }
+      }
+    },
+    "localNetworkConfig": {
+      "type": "object",
+      "required": ["mdnsEnabled"],
+      "properties": {
+        "mdnsEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable mDNS discovery"
+        },
+        "discoveryIntervalSecs": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 3600,
+          "default": 60,
+          "description": "Discovery interval in seconds"
+        },
+        "interface": {
+          "type": "string",
+          "description": "Network interface to bind (optional)"
+        },
+        "manualDevices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/manualDeviceConfig"
+          },
+          "description": "Manual device configurations (if mDNS unavailable)"
+        }
+      }
+    },
+    "manualDeviceConfig": {
+      "type": "object",
+      "required": ["name", "host", "port"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Device name"
+        },
+        "host": {
+          "type": "string",
+          "description": "Device host (IP or hostname)"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "default": 6053,
+          "description": "ESPHome API port"
+        },
+        "password": {
+          "type": "string",
+          "description": "Optional API password (stored securely)"
+        }
+      }
+    },
+    "frpConfig": {
+      "type": "object",
+      "required": ["serverAddr", "serverPort", "gatewayName"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable FRP client"
+        },
+        "serverAddr": {
+          "type": "string",
+          "description": "FRP server address (domain or IP)"
+        },
+        "serverPort": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "default": 7000,
+          "description": "FRP server port"
+        },
+        "authToken": {
+          "type": "string",
+          "description": "Authentication token"
+        },
+        "gatewayName": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "description": "Gateway name (used as proxy name)"
+        },
+        "tls": {
+          "$ref": "#/$defs/tlsConfig",
+          "description": "TLS configuration"
+        },
+        "heartbeat": {
+          "type": "object",
+          "properties": {
+            "intervalSecs": {
+              "type": "integer",
+              "minimum": 10,
+              "default": 30,
+              "description": "Heartbeat interval"
+            },
+            "timeoutSecs": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 90,
+              "description": "Heartbeat timeout"
+            }
+          }
+        },
+        "reconnect": {
+          "$ref": "#/$defs/reconnectConfig",
+          "description": "Reconnection settings"
+        }
+      }
+    },
+    "apiServerConfig": {
+      "type": "object",
+      "required": ["listenAddr"],
+      "properties": {
+        "listenAddr": {
+          "type": "string",
+          "pattern": "^[0-9.]+:[0-9]+$",
+          "default": "0.0.0.0:8080",
+          "description": "Listen address (host:port)"
+        },
+        "tls": {
+          "$ref": "#/$defs/tlsConfig",
+          "description": "TLS configuration"
+        },
+        "auth": {
+          "$ref": "#/$defs/authConfig",
+          "description": "Authentication configuration"
+        },
+        "cors": {
+          "$ref": "#/$defs/corsConfig",
+          "description": "CORS configuration"
+        },
+        "rateLimit": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "requestsPerMinute": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1000
+            }
+          }
+        }
+      }
+    },
+    "tlsConfig": {
+      "type": "object",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable TLS"
+        },
+        "certPath": {
+          "type": "string",
+          "description": "Certificate file path"
+        },
+        "keyPath": {
+          "type": "string",
+          "description": "Private key file path"
+        },
+        "caPath": {
+          "type": "string",
+          "description": "CA certificate file path"
+        },
+        "verifyClient": {
+          "type": "boolean",
+          "default": false,
+          "description": "Verify client certificates"
+        }
+      }
+    },
+    "authConfig": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["api_key", "jwt", "none"],
+          "default": "api_key",
+          "description": "Authentication type"
+        },
+        "apiKeys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "API keys for authentication"
+        },
+        "jwt": {
+          "type": "object",
+          "properties": {
+            "secret": {
+              "type": "string",
+              "description": "JWT secret"
+            },
+            "issuer": {
+              "type": "string",
+              "description": "JWT issuer"
+            },
+            "expirySecs": {
+              "type": "integer",
+              "default": 3600,
+              "description": "Token expiry time"
+            }
+          }
+        }
+      }
+    },
+    "corsConfig": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "allowedOrigins": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": ["*"]
+        },
+        "allowedMethods": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": ["GET", "POST", "PUT", "DELETE"]
+        },
+        "allowedHeaders": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "reconnectConfig": {
+      "type": "object",
+      "properties": {
+        "maxRetries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "default": 10,
+          "description": "Maximum reconnection attempts"
+        },
+        "initialDelaySecs": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1,
+          "description": "Initial delay before first retry"
+        },
+        "maxDelaySecs": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 60,
+          "description": "Maximum delay between retries"
+        },
+        "backoffMultiplier": {
+          "type": "number",
+          "minimum": 1.0,
+          "maximum": 10.0,
+          "default": 2.0,
+          "description": "Exponential backoff multiplier"
+        }
+      }
+    },
+    "securityConfig": {
+      "type": "object",
+      "properties": {
+        "auditLogPath": {
+          "type": "string,
+          "description": "Audit log file path"
+        },
+        "maxRequestSizeMb": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 10,
+          "description": "Maximum request size in MB"
+        },
+        "enableAuditLog": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "databaseConfig": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "default": "/data/gateway.db",
+          "description": "SQLite database path"
+        },
+        "walMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable WAL mode"
+        },
+        "poolSize": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20,
+          "default": 5,
+          "description": "Connection pool size"
+        }
+      }
+    },
+    "loggingConfig": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": ["error", "warn", "info", "debug", "trace"],
+          "default": "info",
+          "description": "Log level"
+        },
+        "path": {
+          "type": "string",
+          "description": "Log file path"
+        },
+        "maxSizeMb": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 10,
+          "description": "Maximum log file size"
+        },
+        "maxFiles": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 5,
+          "description": "Maximum number of log files"
+        }
+      }
+    }
+  }
+}

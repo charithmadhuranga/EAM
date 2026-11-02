@@ -1,0 +1,37 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/eam-domain",
+    "crates/eam-application",
+    "crates/eam-runtime",
+    "crates/eam-storage",
+    "crates/eam-device-manager",
+    "crates/eam-entity-registry",
+    "crates/eam-automation",
+    "crates/eam-history",
+    "crates/eam-dashboard",
+    "crates/eam-config",
+    "crates/eam-toolchain",
+    "crates/eam-discovery",
+    "crates/eam-security",
+    "crates/eam-observability",
+    "apps/desktop/src-tauri",
+]
+exclude = []
+
+[workspace.dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.35", features = ["full"] }
+uuid = { version = "1.6", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+sqlx = { version = "0.7", features = ["runtime-tokio", "sqlite", "migrate"] }
+tauri = { version = "2.0", features = [] }
+tauri-plugin-store = "2.0"
+tauri-plugin-opener = "2.0"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = "warn"
