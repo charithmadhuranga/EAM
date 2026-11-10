@@ -9,13 +9,13 @@ use uuid::Uuid;
 pub struct Area {
     /// Unique area identifier
     pub id: Uuid,
-    
+
     /// Area name
     pub name: String,
-    
+
     /// Parent area (for nested areas)
     pub parent_id: Option<Uuid>,
-    
+
     /// Creation timestamp
     pub created_at: DateTime<Utc>,
 }
@@ -37,13 +37,13 @@ impl Area {
 pub struct DeviceGroup {
     /// Unique group identifier
     pub id: Uuid,
-    
+
     /// Group name
     pub name: String,
-    
+
     /// Group description
     pub description: Option<String>,
-    
+
     /// Creation timestamp
     pub created_at: DateTime<Utc>,
 }
@@ -65,19 +65,19 @@ impl DeviceGroup {
 pub struct DiscoveredDevice {
     /// Device name
     pub name: String,
-    
+
     /// Host address
     pub host: String,
-    
+
     /// Port number
     pub port: u16,
-    
+
     /// MAC address (if available)
     pub mac_address: Option<String>,
-    
+
     /// Friendly name (if advertised)
     pub friendly_name: Option<String>,
-    
+
     /// Discovery source
     pub source: DiscoverySource,
 }
@@ -88,10 +88,10 @@ pub struct DiscoveredDevice {
 pub enum DiscoverySource {
     /// mDNS discovery
     Mdns,
-    
+
     /// Manual registration
     Manual,
-    
+
     /// Network scan
     NetworkScan,
 }
@@ -101,19 +101,19 @@ pub enum DiscoverySource {
 pub struct RuntimeHealth {
     /// Runtime is healthy
     pub healthy: bool,
-    
+
     /// Number of connected devices
     pub connected_devices: usize,
-    
+
     /// Number of registered entities
     pub total_entities: usize,
-    
+
     /// Memory usage in bytes
     pub memory_usage: u64,
-    
+
     /// Uptime in seconds
     pub uptime_secs: u64,
-    
+
     /// Last health check timestamp
     pub checked_at: DateTime<Utc>,
 }
@@ -143,13 +143,13 @@ impl Default for RuntimeHealth {
 pub struct WorkspaceInfo {
     /// Workspace ID
     pub id: Uuid,
-    
+
     /// Workspace name
     pub name: String,
-    
+
     /// Workspace path
     pub path: String,
-    
+
     /// Creation timestamp
     pub created_at: DateTime<Utc>,
 }
@@ -173,7 +173,7 @@ mod tests {
     #[test]
     fn test_area_creation() {
         let area = Area::new("Living Room");
-        
+
         assert_eq!(area.name, "Living Room");
         assert!(area.parent_id.is_none());
     }
@@ -181,7 +181,7 @@ mod tests {
     #[test]
     fn test_device_group_creation() {
         let group = DeviceGroup::new("First Floor");
-        
+
         assert_eq!(group.name, "First Floor");
         assert!(group.description.is_none());
     }
@@ -189,7 +189,7 @@ mod tests {
     #[test]
     fn test_runtime_health() {
         let health = RuntimeHealth::new();
-        
+
         assert!(health.healthy);
         assert_eq!(health.connected_devices, 0);
     }

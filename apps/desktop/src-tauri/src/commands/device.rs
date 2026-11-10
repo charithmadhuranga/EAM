@@ -1,29 +1,21 @@
 //! Device management commands
 
-use eam_domain::{Device, DeviceId, DiscoveredDevice};
-use tauri::State;
 use crate::app::AppState;
+use eam_domain::{Device, DiscoveredDevice};
+use tauri::State;
 
 /// Get all registered devices
 #[tauri::command]
-pub async fn get_devices(
-    state: State<'_, AppState>,
-) -> Result<Vec<Device>, String> {
-    let health = state.health.read().await;
-    
-    // TODO: Fetch actual devices from device manager
-    let devices = Vec::new();
-    
-    Ok(devices)
+pub async fn get_devices(_state: State<'_, AppState>) -> Result<Vec<Device>, String> {
+    // TODO: Fetch actual devices from device manager (Phase 1)
+    Ok(Vec::new())
 }
 
 /// Discover devices on the network
 #[tauri::command]
 pub async fn discover_devices(
-    state: State<'_, AppState>,
+    _state: State<'_, AppState>,
 ) -> Result<Vec<DiscoveredDevice>, String> {
-    // TODO: Implement mDNS discovery
-    let discovered = Vec::new();
-    
-    Ok(discovered)
+    // TODO: Implement mDNS discovery (Phase 1)
+    Ok(Vec::new())
 }

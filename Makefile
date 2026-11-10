@@ -26,6 +26,7 @@ ROOT_DIR := $(shell pwd)
 BUILD_DIR := $(ROOT_DIR)/dist
 DATA_DIR := $(ROOT_DIR)/data
 TARGET_DIR := $(ROOT_DIR)/target
+SERIAL_PORT ?= /dev/ttyUSB0
 
 # Colors (Unix only)
 ifneq ($(PLATFORM),windows)
@@ -43,7 +44,7 @@ else
 endif
 
 # Phony targets
-.PHONY: all help setup build dev test clean lint format check release docker-up docker-down
+.PHONY: all help setup build dev test clean lint format check release docker-up docker-down test-live flash-test-device
 
 # Default target
 all: setup build
@@ -268,6 +269,21 @@ ifeq ($(PLATFORM),windows)
 else
 	pnpm run test:e2e
 endif
+
+# Runs the opt-in real-device tests (ESPHome Native API).
+# Set EAM_LIVE_DEVICE, e.g. EAM_LIVE_DEVICE=10.60.109.61:6053 make test-live
+test-live:
+	@echo "$(BLUE)Running real-device integration tests...$(RESET)"
+ifeq ($(PLATFORM),windows)
+	@powershell -Command "cargo test -p eam-esphome-api --test live -- --nocapture"
+else
+	cargo test -p eam-esphome-api --test live -- --nocapture
+endif
+
+# Flash the Phase 0 test firmware over serial (see tests/device/README.md)
+flash-test-device:
+	@echo "$(BLUE)Flashing test firmware over serial...$(RESET)"
+	esphome run tests/device/test-device.yaml --device $(SERIAL_PORT)
 
 test-coverage:
 	@echo "$(BLUE)Generating test coverage...$(RESET)"

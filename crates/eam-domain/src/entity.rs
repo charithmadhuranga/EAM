@@ -87,10 +87,11 @@ impl std::fmt::Display for EntityType {
 }
 
 /// Entity availability status
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum EntityAvailability {
     /// Entity is available
+    #[default]
     Available,
     /// Entity is unavailable
     Unavailable,
@@ -98,17 +99,12 @@ pub enum EntityAvailability {
     Stale,
 }
 
-impl Default for EntityAvailability {
-    fn default() -> Self {
-        Self::Available
-    }
-}
-
 /// Entity state quality
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum StateQuality {
     /// State is current and reliable
+    #[default]
     Good,
     /// State may be outdated or unreliable
     Poor,
@@ -116,57 +112,51 @@ pub enum StateQuality {
     Unknown,
 }
 
-impl Default for StateQuality {
-    fn default() -> Self {
-        Self::Good
-    }
-}
-
 /// Entity metadata and configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Entity {
     /// Unique entity identifier
     pub id: EntityId,
-    
+
     /// Device this entity belongs to
     pub device_id: Uuid,
-    
+
     /// Native entity key from ESPHome protocol (stable identifier)
     pub native_entity_key: String,
-    
+
     /// Object ID (optional, used in Home Assistant integration)
     pub object_id: Option<String>,
-    
+
     /// Entity name
     pub name: String,
-    
+
     /// Entity type
     pub entity_type: EntityType,
-    
+
     /// Unit of measurement (for sensors)
     pub unit: Option<String>,
-    
+
     /// Icon name
     pub icon: Option<String>,
-    
+
     /// State class (for sensors: measurement, total, etc.)
     pub state_class: Option<String>,
-    
+
     /// Device class (e.g., temperature, humidity)
     pub device_class: Option<String>,
-    
+
     /// Entity capabilities (entity-type specific)
     pub capabilities: JsonValue,
-    
+
     /// Raw metadata from protocol (for forward compatibility)
     pub raw_metadata: JsonValue,
-    
+
     /// Availability status
     pub availability: EntityAvailability,
-    
+
     /// Entity creation timestamp
     pub created_at: DateTime<Utc>,
-    
+
     /// Last update timestamp
     pub updated_at: DateTime<Utc>,
 }
@@ -180,7 +170,7 @@ impl Entity {
         entity_type: EntityType,
     ) -> Self {
         let now = Utc::now();
-        
+
         Self {
             id: EntityId::new(),
             device_id,
@@ -199,12 +189,15 @@ impl Entity {
             updated_at: now,
         }
     }
-    
+
     /// Check if entity is a sensor
     pub fn is_sensor(&self) -> bool {
-        matches!(self.entity_type, EntityType::Sensor | EntityType::BinarySensor | EntityType::TextSensor)
+        matches!(
+            self.entity_type,
+            EntityType::Sensor | EntityType::BinarySensor | EntityType::TextSensor
+        )
     }
-    
+
     /// Check if entity is controllable
     pub fn is_controllable(&self) -> bool {
         matches!(
@@ -228,19 +221,19 @@ impl Entity {
 pub struct EntityState {
     /// Entity ID
     pub entity_id: EntityId,
-    
+
     /// Current value
     pub value: crate::EntityValue,
-    
+
     /// Raw value from protocol
     pub raw_value: Option<JsonValue>,
-    
+
     /// Timestamp from device (if available)
     pub source_timestamp: Option<DateTime<Utc>>,
-    
+
     /// Timestamp when state was received
     pub received_at: DateTime<Utc>,
-    
+
     /// State quality
     pub quality: StateQuality,
 }
@@ -272,7 +265,7 @@ mod tests {
             "Living Room Temperature",
             EntityType::Sensor,
         );
-        
+
         assert_eq!(entity.native_entity_key, "temperature");
         assert_eq!(entity.name, "Living Room Temperature");
         assert_eq!(entity.entity_type, EntityType::Sensor);
@@ -289,7 +282,7 @@ mod tests {
             "Living Room Light",
             EntityType::Switch,
         );
-        
+
         assert!(!entity.is_sensor());
         assert!(entity.is_controllable());
     }

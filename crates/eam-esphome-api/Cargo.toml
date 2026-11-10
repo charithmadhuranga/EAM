@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 description = "ESPHome Native API client for ESPHome Automation Manager"
 
+# This crate owns all ESPHome protocol types (AGENTS.md: the ESPHome adapter
+# owns protocol types and keeps them versioned internally).
 [dependencies]
 eam-domain = { path = "../eam-domain" }
 tokio = { workspace = true }
@@ -14,3 +16,14 @@ chrono = { workspace = true }
 tracing = "0.1"
 bytes = "1.5"
 prost = "0.12"
+thiserror = "1.0"
+
+[dev-dependencies]
+# Only used by examples/regen_proto.rs; generated code is checked in so the
+# crate builds (and CI runs) without protoc installed.
+prost-build = "0.12"
+prost = { version = "0.12", features = ["prost-derive"] }
+
+[[example]]
+name = "regen_proto"
+path = "examples/regen_proto.rs"

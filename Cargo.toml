@@ -13,6 +13,7 @@ members = [
     "crates/eam-config",
     "crates/eam-toolchain",
     "crates/eam-discovery",
+    "crates/eam-esphome-api",
     "crates/eam-security",
     "crates/eam-observability",
     "apps/desktop/src-tauri",

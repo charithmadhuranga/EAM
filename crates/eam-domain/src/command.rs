@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{EntityId, EntityValue};
+use crate::EntityId;
 
 /// Unique identifier for a command
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -35,25 +35,25 @@ impl std::fmt::Display for CommandId {
 pub enum CommandStatus {
     /// Command was rejected by local validation
     Rejected,
-    
+
     /// Command is queued for execution
     Queued,
-    
+
     /// Command was sent to device
     Sent,
-    
+
     /// Command was acknowledged by transport
     Acknowledged,
-    
+
     /// State change observed
     Observed,
-    
+
     /// Command timed out
     TimedOut,
-    
+
     /// Device unavailable
     DeviceUnavailable,
-    
+
     /// Command failed
     Failed,
 }
@@ -79,15 +79,18 @@ impl std::fmt::Display for CommandStatus {
 pub enum CommandOrigin {
     /// User initiated from UI
     User {
+        /// Acting user, when known
         user_id: Option<String>,
     },
-    
+
     /// Automation initiated
     Automation {
+        /// Automation definition that triggered the command
         automation_id: Uuid,
+        /// Identifier of this specific execution
         run_id: Uuid,
     },
-    
+
     /// System initiated
     System,
 }
@@ -98,59 +101,65 @@ pub enum CommandOrigin {
 pub enum EntityCommand {
     /// Turn switch on
     SwitchOn,
-    
+
     /// Turn switch off
     SwitchOff,
-    
+
     /// Toggle switch
     SwitchToggle,
-    
+
     /// Set numeric value
     SetNumber {
+        /// Target numeric value
         value: f64,
     },
-    
+
     /// Set select option
     SelectOption {
+        /// Selected option label
         option: String,
     },
-    
+
     /// Press button
     ButtonPress,
-    
+
     /// Set light state
     SetLight {
+        /// Light state payload
         state: LightState,
     },
-    
+
     /// Set fan state
     SetFan {
+        /// Fan state payload
         state: FanState,
     },
-    
+
     /// Set climate state
     SetClimate {
+        /// Climate state payload
         state: ClimateState,
     },
-    
+
     /// Lock
     Lock,
-    
+
     /// Unlock
     Unlock,
-    
+
     /// Open cover
     CoverOpen,
-    
+
     /// Close cover
     CoverClose,
-    
+
     /// Stop cover
     CoverStop,
-    
+
     /// Set cover position
     CoverSetPosition {
-        position: f64, // 0-100%
+        /// Target cover position, 0-100%
+        position: f64,
     },
 }
 
@@ -159,16 +168,16 @@ pub enum EntityCommand {
 pub struct LightState {
     /// On/off state
     pub state: bool,
-    
+
     /// Brightness (0-255)
     pub brightness: Option<u8>,
-    
+
     /// Color temperature in mireds
     pub color_temp: Option<u16>,
-    
+
     /// RGB color
     pub rgb: Option<(u8, u8, u8)>,
-    
+
     /// Effect name
     pub effect: Option<String>,
 }
@@ -178,10 +187,10 @@ pub struct LightState {
 pub struct FanState {
     /// On/off state
     pub state: bool,
-    
+
     /// Speed (0-100%)
     pub speed: Option<u8>,
-    
+
     /// Oscillation
     pub oscillating: Option<bool>,
 }
@@ -191,13 +200,13 @@ pub struct FanState {
 pub struct ClimateState {
     /// Mode (off, auto, cool, heat, etc.)
     pub mode: Option<String>,
-    
+
     /// Target temperature
     pub target_temperature: Option<f64>,
-    
+
     /// Fan mode
     pub fan_mode: Option<String>,
-    
+
     /// Swing mode
     pub swing_mode: Option<String>,
 }
@@ -207,22 +216,22 @@ pub struct ClimateState {
 pub struct Command {
     /// Unique command identifier
     pub id: CommandId,
-    
+
     /// Target entity
     pub entity_id: EntityId,
-    
+
     /// Command to execute
     pub command: EntityCommand,
-    
+
     /// When command was requested
     pub requested_at: DateTime<Utc>,
-    
+
     /// Who requested the command
     pub requested_by: CommandOrigin,
-    
+
     /// Command timeout in milliseconds
     pub timeout_ms: u64,
-    
+
     /// Current status
     pub status: CommandStatus,
 }
@@ -240,13 +249,13 @@ impl Command {
             status: CommandStatus::Queued,
         }
     }
-    
+
     /// Set command origin to user
     pub fn by_user(mut self, user_id: Option<String>) -> Self {
         self.requested_by = CommandOrigin::User { user_id };
         self
     }
-    
+
     /// Set command timeout
     pub fn with_timeout(mut self, timeout_ms: u64) -> Self {
         self.timeout_ms = timeout_ms;
@@ -262,7 +271,7 @@ mod tests {
     fn test_command_creation() {
         let entity_id = EntityId::new();
         let command = Command::new(entity_id, EntityCommand::SwitchOn);
-        
+
         assert_eq!(command.status, CommandStatus::Queued);
         assert_eq!(command.timeout_ms, 5000);
     }
@@ -273,7 +282,7 @@ mod tests {
         let command = Command::new(entity_id, EntityCommand::SwitchOn)
             .by_user(Some("user-123".to_string()))
             .with_timeout(10000);
-        
+
         assert_eq!(command.timeout_ms, 10000);
         assert!(matches!(command.requested_by, CommandOrigin::User { .. }));
     }

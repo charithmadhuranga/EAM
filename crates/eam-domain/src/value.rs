@@ -3,22 +3,23 @@
 use serde::{Deserialize, Serialize};
 
 /// Entity value - tagged union for all possible entity states
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 #[serde(tag = "type", content = "value")]
 pub enum EntityValue {
     /// Numeric value (temperature, humidity, etc.)
     Number(f64),
-    
+
     /// Boolean value (on/off, open/closed, etc.)
     Bool(bool),
-    
+
     /// Text value
     Text(String),
-    
+
     /// JSON value (complex state)
     Json(serde_json::Value),
-    
+
     /// Unknown or unavailable state
+    #[default]
     Unknown,
 }
 
@@ -27,27 +28,27 @@ impl EntityValue {
     pub fn number(value: f64) -> Self {
         Self::Number(value)
     }
-    
+
     /// Create a boolean value
     pub fn bool(value: bool) -> Self {
         Self::Bool(value)
     }
-    
+
     /// Create a text value
     pub fn text(value: impl Into<String>) -> Self {
         Self::Text(value.into())
     }
-    
+
     /// Check if value is numeric
     pub fn is_number(&self) -> bool {
         matches!(self, Self::Number(_))
     }
-    
+
     /// Check if value is boolean
     pub fn is_bool(&self) -> bool {
         matches!(self, Self::Bool(_))
     }
-    
+
     /// Get numeric value
     pub fn as_number(&self) -> Option<f64> {
         match self {
@@ -55,7 +56,7 @@ impl EntityValue {
             _ => None,
         }
     }
-    
+
     /// Get boolean value
     pub fn as_bool(&self) -> Option<bool> {
         match self {
@@ -63,19 +64,13 @@ impl EntityValue {
             _ => None,
         }
     }
-    
+
     /// Get text value
     pub fn as_text(&self) -> Option<&str> {
         match self {
             Self::Text(s) => Some(s),
             _ => None,
         }
-    }
-}
-
-impl Default for EntityValue {
-    fn default() -> Self {
-        Self::Unknown
     }
 }
 
@@ -98,7 +93,7 @@ mod tests {
     #[test]
     fn test_numeric_value() {
         let value = EntityValue::number(23.5);
-        
+
         assert!(value.is_number());
         assert!(!value.is_bool());
         assert_eq!(value.as_number(), Some(23.5));
@@ -108,7 +103,7 @@ mod tests {
     #[test]
     fn test_bool_value() {
         let value = EntityValue::bool(true);
-        
+
         assert!(value.is_bool());
         assert!(!value.is_number());
         assert_eq!(value.as_bool(), Some(true));
@@ -118,7 +113,7 @@ mod tests {
     #[test]
     fn test_text_value() {
         let value = EntityValue::text("active");
-        
+
         assert_eq!(value.as_text(), Some("active"));
         assert!(value.as_number().is_none());
     }

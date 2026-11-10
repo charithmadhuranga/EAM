@@ -164,13 +164,32 @@ EAM follows clean architecture principles with hybrid connectivity support:
 - [Agent Instructions](AGENTS.md) - Guidelines for AI development assistants
 - [Skill Definition](SKILL.md) - Domain knowledge for automation
 
+## Real Device Testing
+
+Phase 0 was validated against a real ESP32 (`eam-test-device`,
+ESPHome 2026.10.2) flashed over serial:
+
+- Handshake, device info, entity listing, live states
+- Switch + number command round-trips
+- Reconnect recovery after abrupt disconnect
+- Toolchain: `esphome config`, serial flash, OTA
+
+See [`tests/device/README.md`](tests/device/README.md) for the firmware and
+[`docs/decisions/ADR-009-esphome-api-client-strategy.md`](docs/decisions/ADR-009-esphome-api-client-strategy.md)
+for the validation report.
+
+```sh
+# Run the opt-in real-device tests (skipped when the variable is unset)
+EAM_LIVE_DEVICE=10.60.109.61:6053 make test-live
+```
+
 ## Development
 
 ### Phase Status
 
 | Phase | Status | Description |
 |-------|--------|-------------|
-| Phase 0 | ⏳ In Progress | Technical Validation Spike |
+| Phase 0 | ✅ Complete | Technical Validation Spike (validated on real ESP32) |
 | Phase 1 | 🔲 Pending | Application Foundation |
 | Phase 2 | 🔲 Pending | Historical Data & Entity Controls |
 | Phase 3 | 🔲 Pending | Dashboard System |

@@ -1,0 +1,95 @@
+# EAM Phase 0-2 real-device test firmware
+# Flashed over serial to /dev/ttyUSB0. Provides controllable entities:
+# switch, number, sensor, binary_sensor, text_sensor, light — used by
+# integration tests in crates/eam-esphome-api/tests/
+esphome:
+  name: eam-test-device
+  friendly_name: EAM Test Device
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Wi-Fi credentials live in secrets.yaml (gitignored — never commit)
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot so the device stays reachable if Wi-Fi changes
+  ap:
+    ssid: "EAM-Test-Fallback"
+    password: !secret wifi_password
+
+captive_portal:
+
+logger:
+
+api:
+  # No encryption: Phase 0 validates the plaintext handshake first.
+  # Encryption (Noise) is a Phase 8 / DEV-004 follow-up.
+  reboot_timeout: 0s
+
+ota:
+  platform: esphome
+
+# --- Controllable entities for tests ---
+
+switch:
+  - platform: template
+    name: "Test Switch"
+    id: test_switch
+    lambda: 'return id(test_switch_state);'
+    turn_on_action:
+      - lambda: 'id(test_switch_state) = true;'
+    turn_off_action:
+      - lambda: 'id(test_switch_state) = false;'
+    restore_mode: ALWAYS_OFF
+
+number:
+  - platform: template
+    name: "Test Number"
+    id: test_number
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 42
+    optimistic: true
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor
+    update_interval: 5s
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    id: wifi_signal_sensor
+    update_interval: 10s
+
+binary_sensor:
+  - platform: status
+    name: "Status"
+    id: status_sensor
+
+text_sensor:
+  - platform: version
+    name: "ESPHome Version"
+    id: version_sensor
+
+light:
+  - platform: monochromatic
+    name: "Test Light"
+    id: test_light
+    output: test_light_output
+
+output:
+  - platform: ledc
+    id: test_light_output
+    pin: GPIO2
+    frequency: 1 kHz
+
+globals:
+  - id: test_switch_state
+    type: bool
+    initial_value: 'false'
+    restore_value: no
