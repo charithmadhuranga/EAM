@@ -2,14 +2,18 @@
 name = "eam-storage"
 version = "0.1.0"
 edition = "2021"
-description = "SQLite storage layer for ESPHome Automation Manager"
+description = "SQLite persistence layer for ESPHome Automation Manager"
 
 [dependencies]
 eam-domain = { path = "../eam-domain" }
 tokio = { workspace = true }
-sqlx = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
 tracing = "0.1"
+sqlx = { workspace = true, features = ["runtime-tokio", "sqlite", "migrate"] }
+thiserror = "1.0"
+
+[dev-dependencies]
+tempfile = "3.9"

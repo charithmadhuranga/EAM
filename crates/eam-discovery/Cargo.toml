@@ -2,13 +2,15 @@
 name = "eam-discovery"
 version = "0.1.0"
 edition = "2021"
-description = "mDNS device discovery for ESPHome Automation Manager"
+description = "Device discovery (mDNS/DNS-SD) for ESPHome Automation Manager"
 
 [dependencies]
 eam-domain = { path = "../eam-domain" }
 tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-uuid = { workspace = true }
-chrono = { workspace = true }
 tracing = "0.1"
+thiserror = "1.0"
+
+[dev-dependencies]
+tempfile = "3.9"

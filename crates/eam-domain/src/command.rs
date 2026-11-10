@@ -95,8 +95,8 @@ pub enum CommandOrigin {
     System,
 }
 
-/// Entity command kind
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// Entity command kinds
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", content = "params")]
 pub enum EntityCommand {
     /// Turn switch on
@@ -164,7 +164,7 @@ pub enum EntityCommand {
 }
 
 /// Light state command
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LightState {
     /// On/off state
     pub state: bool,
@@ -183,7 +183,7 @@ pub struct LightState {
 }
 
 /// Fan state command
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FanState {
     /// On/off state
     pub state: bool,
@@ -196,7 +196,7 @@ pub struct FanState {
 }
 
 /// Climate state command
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ClimateState {
     /// Mode (off, auto, cool, heat, etc.)
     pub mode: Option<String>,

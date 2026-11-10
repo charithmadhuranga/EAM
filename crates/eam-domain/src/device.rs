@@ -44,6 +44,8 @@ pub enum DeviceConnectionStatus {
     Error,
     /// Device is disabled
     Disabled,
+    /// Device is not registered with this manager
+    Unknown,
 }
 
 impl std::fmt::Display for DeviceConnectionStatus {
@@ -55,6 +57,7 @@ impl std::fmt::Display for DeviceConnectionStatus {
             Self::AuthenticationFailed => write!(f, "Authentication Failed"),
             Self::Error => write!(f, "Error"),
             Self::Disabled => write!(f, "Disabled"),
+            Self::Unknown => write!(f, "Unknown"),
         }
     }
 }

@@ -7,8 +7,10 @@ description = "Runtime supervisor and lifecycle management for ESPHome Automatio
 [dependencies]
 eam-domain = { path = "../eam-domain" }
 tokio = { workspace = true }
+tokio-util = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
 tracing = "0.1"
+thiserror = "1.0"
