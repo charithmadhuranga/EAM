@@ -274,3 +274,30 @@ async fn registry_isolates_devices() {
     assert_eq!(registry.get_by_key(d2, "1").unwrap().id, e2.id);
     assert!(registry.get(e1.id).is_some());
 }
+
+#[tokio::test]
+async fn live_reconnect_all_restores_disconnected_device() {
+    let addr = live!();
+    let host = addr.split(':').next().unwrap().to_string();
+    let (manager, registry) = manager().await;
+    let device = manager
+        .register("eam-test-device", &host, 6053, None)
+        .await
+        .unwrap();
+
+    manager.connect(device.id).await.unwrap();
+    assert_eq!(manager.status(device.id), DeviceConnectionStatus::Online);
+
+    // Network interruption: disconnect abruptly.
+    manager.disconnect(device.id).await.unwrap();
+    assert_eq!(manager.status(device.id), DeviceConnectionStatus::Offline);
+
+    // The reconnect loop (and reconnect_all in particular) must restore it.
+    manager
+        .reconnect_all()
+        .await
+        .expect("reconnect_all succeeded");
+    assert_eq!(manager.status(device.id), DeviceConnectionStatus::Online);
+    assert_eq!(registry.lock().await.list_by_device(device.id.0).len(), 7);
+    manager.disconnect(device.id).await.unwrap();
+}

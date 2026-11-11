@@ -12,7 +12,10 @@ use eam_runtime::{HealthMonitor, TaskSupervisor};
 use eam_storage::open;
 use tauri::Manager;
 use tokio::sync::Mutex;
-use tracing::{error, info};
+use tracing::{debug, error, info};
+
+/// How often the reconnect loop retries offline devices.
+const RECONNECT_INTERVAL: std::time::Duration = std::time::Duration::from_secs(15);
 
 /// Where the SQLite database lives.
 pub fn database_path(app: &tauri::AppHandle) -> std::path::PathBuf {
@@ -54,14 +57,34 @@ impl AppState {
         let mut supervisor = TaskSupervisor::new();
         let health = HealthMonitor::new();
 
-        // Reconnect every known device; failures are non-fatal (the device may
-        // simply be offline, and the reconnect loop keeps trying).
-        let reconnect_manager = Arc::clone(&manager);
-        supervisor.spawn("reconnect-all", move |token| async move {
+        // Reconnect every known device once at startup; failures are
+        // non-fatal (the device may simply be offline).
+        let initial_manager = Arc::clone(&manager);
+        supervisor.spawn("initial-sync", move |token| async move {
             token.cancelled().await;
-            match reconnect_manager.reconnect_all().await {
+            match initial_manager.reconnect_all().await {
                 Ok(()) => info!("initial device sync complete"),
-                Err(e) => error!("initial device sync: {e}"),
+                Err(e) => info!("initial device sync incomplete: {e}"),
+            }
+        });
+
+        // Automatic reconnect: retry offline devices on a cadence so a device
+        // that reboots or drops off the network comes back on its own.
+        let reconnect_manager = Arc::clone(&manager);
+        supervisor.spawn("reconnect-loop", move |token| async move {
+            loop {
+                if token.is_cancelled() {
+                    break;
+                }
+                match reconnect_manager.reconnect_all().await {
+                    Ok(()) => {}
+                    Err(e) => debug!(target: "eam_runtime", "reconnect pass: {e}"),
+                }
+                // Wait before the next pass, but wake immediately on shutdown.
+                tokio::select! {
+                    _ = token.cancelled() => break,
+                    _ = tokio::time::sleep(RECONNECT_INTERVAL) => {}
+                }
             }
         });
 

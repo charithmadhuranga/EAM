@@ -190,8 +190,8 @@ EAM_LIVE_DEVICE=10.60.109.61:6053 make test-live
 | Phase | Status | Description |
 |-------|--------|-------------|
 | Phase 0 | ✅ Complete | Technical Validation Spike (validated on real ESP32) |
-| Phase 1 | 🔲 Pending | Application Foundation |
-| Phase 2 | 🔲 Pending | Historical Data & Entity Controls |
+| Phase 1 | ✅ Complete | Application Foundation & Device Manager |
+| Phase 2 | ⏳ Next | Historical Data & Entity Controls |
 | Phase 3 | 🔲 Pending | Dashboard System |
 | Phase 4 | 🔲 Pending | Automation Runtime |
 | Phase 5 | 🔲 Pending | Automation Visual Editor |
