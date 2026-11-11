@@ -1,24 +1,32 @@
-//! Runtime status commands
+//! Runtime status commands.
 
-use crate::app::AppState;
 use eam_domain::{RuntimeHealth, WorkspaceInfo};
 use tauri::State;
 
-/// Get runtime health status
+use crate::app::AppState;
+
+/// Get runtime health (uptime, device/entity counts).
 #[tauri::command]
 pub async fn get_runtime_status(state: State<'_, AppState>) -> Result<RuntimeHealth, String> {
-    let health = state.health.read().await;
-    Ok(health.clone())
+    let devices = state
+        .manager
+        .list_devices()
+        .await
+        .map_err(|e| e.to_string())?;
+    let connected = devices
+        .iter()
+        .filter(|d| state.manager.status(d.id) == eam_domain::DeviceConnectionStatus::Online)
+        .count();
+    let entities = state.registry.lock().await.list().len();
+
+    Ok(state.health.lock().await.snapshot(connected, entities))
 }
 
-/// Get workspace information
+/// Get workspace information.
 #[tauri::command]
-pub async fn get_workspace_info() -> Result<WorkspaceInfo, String> {
-    // TODO: Fetch actual workspace info
+pub async fn get_workspace_info(state: State<'_, AppState>) -> Result<WorkspaceInfo, String> {
     Ok(WorkspaceInfo::new(
         "Default Workspace",
-        std::env::current_dir()
-            .map(|p| p.to_string_lossy().to_string())
-            .unwrap_or_else(|_| ".".to_string()),
+        state.manager.data_dir(),
     ))
 }

@@ -10,6 +10,12 @@ tauri-build = { version = "2.0", features = [] }
 
 [dependencies]
 eam-domain = { path = "../../../crates/eam-domain" }
+eam-esphome-api = { path = "../../../crates/eam-esphome-api" }
+eam-discovery = { path = "../../../crates/eam-discovery" }
+eam-storage = { path = "../../../crates/eam-storage" }
+eam-entity-registry = { path = "../../../crates/eam-entity-registry" }
+eam-device-manager = { path = "../../../crates/eam-device-manager" }
+eam-runtime = { path = "../../../crates/eam-runtime" }
 tauri = { workspace = true }
 tauri-plugin-store = { workspace = true }
 tauri-plugin-opener = { workspace = true }

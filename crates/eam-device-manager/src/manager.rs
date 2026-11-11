@@ -65,6 +65,8 @@ pub enum ManagerEvent {
 pub struct ConnectionManager {
     /// Storage pool for device and entity persistence.
     pool: sqlx::SqlitePool,
+    /// Where the database lives (shown in the UI workspace info).
+    data_dir: String,
     /// Live connections by device id.
     connections: Mutex<HashMap<Uuid, Connection>>,
     /// Shared in-memory registry (states are broadcast from here).
@@ -84,6 +86,7 @@ impl ConnectionManager {
         let (events, _) = broadcast::channel(EVENT_CAPACITY);
         Self {
             pool,
+            data_dir: ".".to_string(),
             connections: Mutex::new(HashMap::new()),
             registry,
             backoff: BackoffConfig::default(),
@@ -102,6 +105,19 @@ impl ConnectionManager {
     #[must_use]
     pub fn discovery(&self) -> DiscoveryService {
         DiscoveryService::new()
+    }
+
+    /// Record the database location for the UI.
+    #[must_use]
+    pub fn with_data_dir(mut self, dir: impl Into<String>) -> Self {
+        self.data_dir = dir.into();
+        self
+    }
+
+    /// Database location as shown in the UI.
+    #[must_use]
+    pub fn data_dir(&self) -> String {
+        self.data_dir.clone()
     }
 
     /// Override the reconnect backoff configuration.
